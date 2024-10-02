@@ -24,6 +24,8 @@ from enum import Enum
 #     return result
 
 def parse_lesson(entry):
+    default_max_week = 17
+
     class ArgTypes(Enum):
         WEEKS = 0
         LESSON_TYPE = 1
@@ -47,7 +49,7 @@ def parse_lesson(entry):
         if arg.replace(',', '').replace('-', '').isdigit():
             return ArgTypes.WEEKS.value
         lessons_types = ['лаб.', 'пр.', 'л.', 'сем.']
-        if arg.replace(',', '') in lessons_types:
+        if '.' in arg and arg.replace(',', '') in lessons_types:
             return ArgTypes.LESSON_TYPE.value
         if len(arg) == 4 and arg.upper() == arg:
             return ArgTypes.TEACHER.value
@@ -58,6 +60,9 @@ def parse_lesson(entry):
 
     search_types = True
     for arg in entry[2:]:
+        skip_chars = ['-', '/']
+        if arg in skip_chars:
+            break
         arg_type = detect_type(arg)
 
         if arg_type == ArgTypes.WEEKS.value:
@@ -72,28 +77,77 @@ def parse_lesson(entry):
         else:
             result['teacher'].append(arg)
     if not result['weeks']:
-        result['weeks'].append('1-17')
+        result['weeks'].append(f'1-{default_max_week}')
     if not result['types']:
         result['types'].append('-')
     return result
 
 
 class Lesson:
+    def __init__(self, day: str, number: str, interval: str = None, lesson_type: str = None, name: str = None,
+                 teacher: str = None,
+                 subgroup: str = None):
+        self.day = int(day)
+        self.number = int(number)
+        self.start, self.end = self.parse_interval(interval)
+        self.lesson_type = lesson_type
+        self.name = name
+        self.teacher = teacher
+        self.subgroup = ' '.join(subgroup)
+
+    @staticmethod
+    def parse_interval(interval: str) -> tuple:
+        if not '-' in interval:
+            return (int(interval),) * 2
+
+        return tuple(map(int, interval.split('-')))
+
+    def __str__(self):
+        return f"{self.start}-{self.end} {self.name} {self.subgroup} {self.teacher}"
+
+
+class LessonRecord:
     def __init__(self, data: dict):
         self.day = data['day']
         self.number = data['number']
         self.weeks = self.parse_weeks(data['weeks'], data['types'])
-        self.types = data['types']
         self.name = ' '.join(data['name'])
         self.teacher = ' '.join(data['teacher'])
+        self.subgroup = data['subgroup']
         self.raw = data['raw']
-        self.test = []
+
+    def __str__(self):
+        return f"{self.weeks} {self.name} {self.teacher}"
+
+    def get_list(self) -> list:
+        result = []
+        for item in self.weeks:
+            lesson = Lesson(
+                day=self.day,
+                number=self.number,
+                interval=item[0],
+                lesson_type=item[1],
+                name=self.name,
+                teacher=self.teacher,
+                subgroup=self.subgroup
+            )
+            result.append(lesson)
+
+        return result
 
     @staticmethod
-    def parse_weeks(weeks, types):
+    def clean_records(data: list | tuple):
+        return [item.replace(',', '') for item in data]
+
+    def parse_weeks(self, weeks, types):
         n = len(weeks)
         m = len(types)
         result = []
+
+        if not (n > m != 1):
+            weeks = self.clean_records(weeks)
+            types = self.clean_records(types)
+
         if n == m:
             result = [(weeks[i], types[i]) for i in range(n)]
         elif n > m:
@@ -101,10 +155,10 @@ class Lesson:
                 return [(week, types[0]) for week in weeks]
             else:
                 i = 0
-                for week in weeks:
+                for week in self.clean_records(weeks):
                     if ',' in week and ',' in types[i]:
                         i += 1
-                    result.append((week, types[i]))
+                    result.append((week, types[i].replace(',', '')))
         elif n < m:
             if n == 1:
                 result.append((weeks[0], '/'.join(types)))
@@ -172,10 +226,12 @@ print(groups)
 target = '308'
 result = schedule[target]
 
+# Знаковый синтаксис
+
 for item in result:
     data = item.split()
     res = parse_lesson(data)
-
-    lesson = Lesson(res)
-    print(' '.join(lesson.raw[2:]))
-    print(lesson.weeks)
+    record = LessonRecord(res)
+    result = record.get_list()
+    for less in result:
+        print(less)
