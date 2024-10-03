@@ -4,7 +4,7 @@ from enum import Enum
 class Lesson:
     def __init__(self, day: str, number: str, interval: str = None, lesson_type: str = None, name: str = None,
                  teacher: str = None,
-                 subgroup: str = None):
+                 subgroup: list = None, group: str = None):
         self.day = int(day)
         self.number = int(number)
         self.start, self.end = self.parse_interval(interval)
@@ -12,6 +12,7 @@ class Lesson:
         self.name = name
         self.teacher = teacher
         self.subgroup = ' '.join(subgroup)
+        self.group = group
 
     @staticmethod
     def parse_interval(interval: str) -> tuple:
@@ -21,11 +22,11 @@ class Lesson:
         return tuple(map(int, interval.split('-')))
 
     def __str__(self):
-        return f"{self.day}| {self.number} | {self.start} | {self.end} | {self.lesson_type} | {self.name} | {self.subgroup} | {self.teacher}"
+        return f"{self.group} | {self.day}| {self.number} | {self.start} | {self.end} | {self.lesson_type} | {self.name} | {self.subgroup} | {self.teacher}"
 
 
 class LessonRecord:
-    def __init__(self, data: list):
+    def __init__(self, data: list, group: str):
         data = self.parse_lesson(data)
         self.day = data['day']
         self.number = data['number']
@@ -33,6 +34,7 @@ class LessonRecord:
         self.name = ' '.join(data['name'])
         self.teacher = ' '.join(data['teacher'])
         self.subgroup = data['subgroup']
+        self.group = group
         self.raw = data['raw']
 
     def __str__(self):
@@ -48,7 +50,8 @@ class LessonRecord:
                 lesson_type=item[1],
                 name=self.name,
                 teacher=self.teacher,
-                subgroup=self.subgroup
+                subgroup=self.subgroup,
+                group=self.group
             )
             result.append(lesson)
 
