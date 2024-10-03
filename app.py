@@ -1,6 +1,5 @@
 from models import LessonRecord
 from reader import read_excel_data
-import sqlite3
 
 from sqlite import save_lesson
 

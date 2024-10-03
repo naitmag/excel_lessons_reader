@@ -90,7 +90,7 @@ class LessonRecord:
             lessons_types = ['лаб.', 'пр.', 'л.', 'сем.']
             if '.' in arg and arg.replace(',', '') in lessons_types:
                 return ArgTypes.LESSON_TYPE.value
-            if len(arg) == 4 and arg.upper() == arg:
+            if len(arg) == 4 and arg.upper() == arg and '.' in arg:
                 return ArgTypes.TEACHER.value
             if '(' in arg or ')' in arg:
                 return ArgTypes.SUBGROUP.value

@@ -26,7 +26,7 @@ def read_excel_data(file_path: str):
     schedule = {group: [] for group in groups}
 
     times = ['8.30\n9.50', '10.05\n11.25', '12.00\n13.20', '13.35\n14.55']
-    days = ['п о н е д е л ь н и к', 'в т о р н и к', 'с р е д а', 'ч е т в е р г', 'п я т н и ц а', 'с у б б о т а']
+    days = ['п о н е д е л ь н и к', 'в т о р н и к', 'с р е д а','с р е д а ', 'ч е т в е р г', 'п я т н и ц а', 'с у б б о т а']
 
     lesson_day = 0
     lesson_number = 0
@@ -36,6 +36,7 @@ def read_excel_data(file_path: str):
             lesson_day = days.index(target_step[0])
         if target_step[1] in times:
             lesson_number = times.index(target_step[1])
+
         for i in range(2, len(target_step)):
 
             item = target_step[i]
@@ -43,6 +44,7 @@ def read_excel_data(file_path: str):
                 if item in times or item in days:
                     group_number = 0
                 else:
+                    print(item)
                     schedule[groups[group_number]].append(f"{lesson_day} {lesson_number} {item}")
                     group_number += 1
             else:
