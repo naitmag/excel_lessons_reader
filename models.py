@@ -1,18 +1,67 @@
 from enum import Enum
 
+import sqlite3 as sq
+
+
+class Week:
+    def __init__(self, group: str, number: int):
+        self.number = number
+        self.group = group
+        self.lessons = self.get_lessons()
+
+    def get_lessons(self):
+        with sq.connect("schedule.db") as con:
+            cur = con.cursor()
+
+            cur.execute(
+                f"""
+                SELECT * FROM lesson WHERE lesson_group = '{self.group}' AND start <= {self.number} 
+                AND end >= {self.number};
+                """
+            )
+            return cur.fetchall()
+
+    def format_week(self):
+        result = f"Расписание на неделю {self.number}\n"
+        days = ['Понедельник', "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
+        i = -1
+        for lesson in self.lessons:
+            lesson = Lesson(sql_data=lesson)
+
+            if i != lesson.day:
+                i = lesson.day
+                result += '\n' + days[i] + '\n'
+            result += str(lesson) + '\n'
+
+        return result
+
 
 class Lesson:
-    def __init__(self, day: str, number: str, interval: str = None, lesson_type: str = None, name: str = None,
+    def __init__(self, lesson_id: int = None, day: str = None, number: str = None, interval: str = None,
+                 lesson_type: str = None, name: str = None,
                  teacher: str = None,
-                 subgroup: list = None, group: str = None):
-        self.day = int(day)
-        self.number = int(number)
-        self.start, self.end = self.parse_interval(interval)
-        self.lesson_type = lesson_type
-        self.name = name
-        self.teacher = teacher
-        self.subgroup = ' '.join(subgroup)
-        self.group = group
+                 subgroup: list = None, group: str = None, sql_data: list = None):
+        if not sql_data:
+            self.lesson_id = lesson_id
+            self.day = int(day)
+            self.number = int(number)
+            self.start, self.end = self.parse_interval(interval)
+            self.lesson_type = lesson_type
+            self.name = name
+            self.teacher = teacher
+            self.subgroup = ' '.join(subgroup)
+            self.group = group
+        else:
+            self.lesson_id = sql_data[0]
+            self.group = sql_data[1]
+            self.start = sql_data[2]
+            self.end = sql_data[3]
+            self.day = sql_data[4]
+            self.number = sql_data[5]
+            self.lesson_type = sql_data[6]
+            self.name = sql_data[7]
+            self.subgroup = sql_data[8]
+            self.teacher = sql_data[9]
 
     @staticmethod
     def parse_interval(interval: str) -> tuple:

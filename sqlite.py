@@ -9,7 +9,10 @@ def save_lesson(lesson: Lesson):
 
         cur.execute(
             f"""
-            INSERT INTO lesson ('group', start, end, day, number, lesson_type, name, subgroup, teacher) 
+            INSERT INTO lesson ('lesson_group', start, end, day, number, lesson_type, name, subgroup, teacher) 
             VALUES ('{lesson.group}',{lesson.start},{lesson.end},{lesson.day},{lesson.number},'{lesson.lesson_type}','{lesson.name}','{lesson.subgroup}','{lesson.teacher}');
             """
         )
+
+
+
