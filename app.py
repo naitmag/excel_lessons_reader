@@ -20,5 +20,5 @@ def save_lessons():
 
 
 if __name__ == '__main__':
-    week = Week('308', 5)
+    week = Week('408', 5)
     print(week.format_week())

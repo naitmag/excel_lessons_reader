@@ -33,20 +33,19 @@ def read_excel_data(file_path: str):
     for target_step in data[groups_line + 1:]:
         group_number = 0
         guess_day = target_step[0].replace(' ', '')
-        guess_time = target_step[0].replace(' ', '')
+        guess_time = target_step[1].replace(' ', '')
         if guess_day in days:
             lesson_day = days.index(guess_day)
         if guess_time in times:
             lesson_number = times.index(guess_time)
 
         for i in range(2, len(target_step)):
-
             item = target_step[i]
             if item:
-                if item in times or item in days:
+                if i >= len(target_step)-2:
+                    print(item)
                     group_number = 0
                 else:
-                    print(item)
                     schedule[groups[group_number]].append(f"{lesson_day} {lesson_number} {item}")
                     group_number += 1
             else:
